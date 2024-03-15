@@ -1,0 +1,5 @@
+compling_notebooks/
+__pycache__/
+.DS_Store
+wandb/
+*.ipynb
