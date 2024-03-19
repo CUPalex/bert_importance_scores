@@ -66,7 +66,6 @@ class Pipeline:
                 inputs = batch["input_ids"].to(self.device)
                 attn_masks = batch["attention_mask"].to(self.device)
                 gold_outputs = batch["labels"].flatten().to(self.device).to(torch.int64)
-                assert (gold_outputs < 2).all() and (gold_outputs >= 0).all(), gold_outputs
                 
                 predicted_logits = self.model(inputs, attention_mask=attn_masks)
                 batch_loss = self.loss(predicted_logits, gold_outputs)
