@@ -82,7 +82,7 @@ class Pipeline:
         return correct / total, sum_losses / len(dataloader), sum_mse / len(dataloader)
     
     def train(self, until_val_loss_goes_up=False, num_epochs=10):
-        wandb.init(project="coli",
+        wandb.init(project="coli-final-project",
                    name=f"{self.task.name}-seed-{self.seed}",
                    config={
                        "task": self.task.name,
@@ -93,18 +93,19 @@ class Pipeline:
                        "dataset_test_size": len(self.task.dataset_test),
                    })
 
-        prev_loss = None
+        losses = []
         for epoch in range(num_epochs):
             self.train_epoch()
             _, loss, _ = self.validate(self.task.dataloader_val)
             wandb.log({"epochs": epoch})
-            if until_val_loss_goes_up and prev_loss is not None and prev_loss < loss:
+            if until_val_loss_goes_up and len(losses) >= 10 and sum(losses[-5:]) / 5 < loss:
                 break
+            losses.append(loss)
 
         wandb.finish()
 
     def find_importance_scores(self):
-        wandb.init(project="coli", name=f"{self.task.name}-seed-{self.seed}-imp-scores")
+        wandb.init(project="coli-final-project", name=f"{self.task.name}-seed-{self.seed}-imp-scores")
         num_layers = 12
         accs = [[0, 0, 0, 0, 0, 0] for l in range(num_layers)]
         acc, loss, mse = self.validate(self.task.dataloader_test, log_to_wandb=False)

@@ -1,5 +1,6 @@
 from abc import ABC
 from collections import defaultdict
+import logging
 
 import numpy as np
 import stanza
@@ -73,6 +74,7 @@ class LinguisticFeatures(ABC):
                                            "NP_VP_.", "PP_NP_VP_.", "RB_NP_VP_.", "SBAR_NP_VP_.", "SBAR_VP_.", "S_CC_S_.", "S_NP_VP_",
                                            "S_VP_.", "VBD_NP_VP_.", "VP_.", "WHADVP_SQ_.", "WHNP_SQ_.")
         if "_".join(consts) + "_." not in top_const:
+            logging.warning(f"{consts} not in the list of top constituents")
             return len(top_const)
         else:
             return {c : i for i, c in enumerate(top_const)}["_".join(consts) + "_."]
@@ -89,7 +91,7 @@ class LinguisticFeatures(ABC):
             "random": np.random.randint(0, 2),
             "sentence_length": len(parsed_sent.words),
             "tree_depth": max(word_depth),
-            "top_constituents": LinguisticFeatures._get_20_class(tuple([child.label for child in parsed_sent.constituency.children[0].children])),
+            "top_constituents": LinguisticFeatures._get_20_class(tuple([str(child.label) for child in parsed_sent.constituency.children[0].children])),
             "tense": 0 if str(vb_tense) == "Past" else (1 if str(vb_tense) == "Pres" else None),
             "subject_number": 0 if str(subj_num) == "Sing" else (1 if str(subj_num) == "Plur" else None),
             "object_number": 0 if str(obj_num) == "Sing" else (1 if str(obj_num) == "Plur" else None),
