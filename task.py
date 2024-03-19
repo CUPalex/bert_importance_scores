@@ -9,7 +9,7 @@ from linguistic_features import LinguisticFeatures
 
 class Task:
     def __init__(self):
-        self.tasks_names = ["sentence_length", "tree_depth", "top_constituents", "tense", "subject_number", "object_number"]
+        self.tasks_names = ["random", "sentence_length", "tree_depth", "top_constituents", "tense", "subject_number", "object_number"]
         self.dataset = load_dataset(path="universal_dependencies", name="en_ewt")
         lf = LinguisticFeatures()
 
@@ -39,9 +39,9 @@ class Task:
 
         logging.info("len of datasets after filtering", len(self.dataset_train), len(self.dataset_test), len(self.dataset_val))
 
-        self.dataset_train = self.dataset["train"].map(lambda e: self._tokenize(task, e, tokenizer, "train"), batched=True, batch_size=batch_size)
-        self.dataset_test = self.dataset["test"].map(lambda e: self._tokenize(task, e, tokenizer, "test"), batched=True, batch_size=batch_size)
-        self.dataset_val = self.dataset["validation"].map(lambda e: self._tokenize(task, e, tokenizer, "val"), batched=True, batch_size=batch_size)
+        self.dataset_train = self.dataset_train.map(lambda e: self._tokenize(task, e, tokenizer, "train"), batched=True, batch_size=batch_size)
+        self.dataset_test = self.dataset_test.map(lambda e: self._tokenize(task, e, tokenizer, "test"), batched=True, batch_size=batch_size)
+        self.dataset_val = self.dataset_val.map(lambda e: self._tokenize(task, e, tokenizer, "val"), batched=True, batch_size=batch_size)
 
         self.dataset_train.set_format(type="torch", columns=["input_ids", "attention_mask", "labels"])
         self.dataset_test.set_format(type="torch", columns=["input_ids", "attention_mask", "labels"])

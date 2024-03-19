@@ -37,7 +37,7 @@ class Pipeline:
         for batch in tqdm.tqdm(self.task.dataloader_train):
             inputs = batch["input_ids"].to(self.device)
             attn_masks = batch["attention_mask"].to(self.device)
-            gold_outputs = batch["labels"].flatten().to(self.device)
+            gold_outputs = batch["labels"].flatten().to(self.device).to(torch.int64)
             
             predicted_logits = self.model(inputs, attention_mask=attn_masks)
 
@@ -65,7 +65,8 @@ class Pipeline:
             for batch in tqdm.tqdm(dataloader):
                 inputs = batch["input_ids"].to(self.device)
                 attn_masks = batch["attention_mask"].to(self.device)
-                gold_outputs = batch["labels"].flatten().to(self.device)
+                gold_outputs = batch["labels"].flatten().to(self.device).to(torch.int64)
+                assert (gold_outputs < 2).all() and (gold_outputs >= 0).all(), gold_outputs
                 
                 predicted_logits = self.model(inputs, attention_mask=attn_masks)
                 batch_loss = self.loss(predicted_logits, gold_outputs)
@@ -81,25 +82,29 @@ class Pipeline:
         return correct / total, sum_losses / len(dataloader), sum_mse / len(dataloader)
     
     def train(self, until_val_loss_goes_up=False, num_epochs=10):
-        wandb.init(project="coli-project",
+        wandb.init(project="coli",
                    name=f"{self.task.name}-seed-{self.seed}",
                    config={
                        "task": self.task.name,
                        "num_classes": self.task.num_classes,
-                       "chance_performance": self.task.chance_performance
+                       "chance_performance": self.task.chance_performance,
+                       "dataset_train_size": len(self.task.dataset_train),
+                       "dataset_val_size": len(self.task.dataset_val),
+                       "dataset_test_size": len(self.task.dataset_test),
                    })
 
         prev_loss = None
         for epoch in range(num_epochs):
             self.train_epoch()
             _, loss, _ = self.validate(self.task.dataloader_val)
+            wandb.log({"epochs": epoch})
             if until_val_loss_goes_up and prev_loss is not None and prev_loss < loss:
                 break
 
         wandb.finish()
 
     def find_importance_scores(self):
-        wandb.init(project="coli-project", name=f"{self.task.name}-seed-{self.seed}-imp-scores")
+        wandb.init(project="coli", name=f"{self.task.name}-seed-{self.seed}-imp-scores")
         num_layers = 12
         accs = [[0, 0, 0, 0, 0, 0] for l in range(num_layers)]
         acc, loss, mse = self.validate(self.task.dataloader_test, log_to_wandb=False)

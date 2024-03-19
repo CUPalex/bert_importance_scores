@@ -1,6 +1,7 @@
 from abc import ABC
 from collections import defaultdict
 
+import numpy as np
 import stanza
 
 class LinguisticFeatures(ABC):
@@ -85,6 +86,7 @@ class LinguisticFeatures(ABC):
         vb_tense = LinguisticFeatures._get_verb_tense(parsed_sent, word_depth)
 
         return {
+            "random": np.random.randint(0, 2),
             "sentence_length": len(parsed_sent.words),
             "tree_depth": max(word_depth),
             "top_constituents": LinguisticFeatures._get_20_class(tuple([child.label for child in parsed_sent.constituency.children[0].children])),
