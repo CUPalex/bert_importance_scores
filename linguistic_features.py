@@ -98,7 +98,6 @@ class LinguisticFeatures(ABC):
         }
     
     def get_features_per_sent(self, dataset):
-        # return [{feature: 0 for feature in ["sentence_length", "tree_depth", "top_constituents", "tense", "subject_number", "object_number"]}] * len(dataset)
         text_tokenized = [item["tokens"] for item in dataset]
         parsed_text = self.nlp(text_tokenized)
         features_list = []
