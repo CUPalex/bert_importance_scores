@@ -73,11 +73,11 @@ class LinguisticFeatures(ABC):
         top_const = ("ADVP_NP_VP_.", "CC_ADVP_NP_VP_.", "CC_NP_VP_.", "IN_NP_VP_.", "NP_ADVP_VP_.", "NP_NP_VP_.", "NP_PP_.",
                                            "NP_VP_.", "PP_NP_VP_.", "RB_NP_VP_.", "SBAR_NP_VP_.", "SBAR_VP_.", "S_CC_S_.", "S_NP_VP_",
                                            "S_VP_.", "VBD_NP_VP_.", "VP_.", "WHADVP_SQ_.", "WHNP_SQ_.")
-        if "_".join(consts) + "_." not in top_const:
-            logging.warning(f"{consts} not in the list of top constituents")
+        if "_".join(consts) not in top_const:
+            logging.warning(f"{consts}, {'_'.join(consts)} not in the list of top constituents")
             return len(top_const)
         else:
-            return {c : i for i, c in enumerate(top_const)}["_".join(consts) + "_."]
+            return {c : i for i, c in enumerate(top_const)}["_".join(consts)]
 
 
     @staticmethod

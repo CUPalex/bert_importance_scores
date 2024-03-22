@@ -54,6 +54,7 @@ class Pipeline:
             batch_loss.backward()
             self.optimizer.step()
         wandb.log({"epoch/loss" : sum_losses / len(self.task.dataloader_train)})
+        return sum_losses / len(self.task.dataloader_train)
     
     def validate(self, dataloader, log_to_wandb=True):
         self.model.eval()
@@ -80,8 +81,8 @@ class Pipeline:
             wandb.log({"epoch/acc" : correct / total, "epoch/val_loss": sum_losses / len(dataloader), "epoch/val_mse": sum_mse / len(dataloader)})
         return correct / total, sum_losses / len(dataloader), sum_mse / len(dataloader)
     
-    def train(self, until_val_loss_goes_up=False, num_epochs=10):
-        wandb.init(project="coli-final-project",
+    def train(self, until_val_loss_goes_up=False, until_train_loss_goes_up=False, num_epochs=10):
+        wandb.init(project="coli-final",
                    name=f"{self.task.name}-seed-{self.seed}",
                    config={
                        "task": self.task.name,
@@ -92,19 +93,22 @@ class Pipeline:
                        "dataset_test_size": len(self.task.dataset_test),
                    })
 
-        losses = []
+        val_losses, train_losses = [], []
         for epoch in range(num_epochs):
-            self.train_epoch()
-            _, loss, _ = self.validate(self.task.dataloader_val)
+            train_loss = self.train_epoch()
+            _, val_loss, _ = self.validate(self.task.dataloader_val)
             wandb.log({"epochs": epoch})
-            if until_val_loss_goes_up and len(losses) >= 10 and sum(losses[-5:]) / 5 < loss:
+            if until_val_loss_goes_up and len(val_losses) >= 10 and sum(val_losses[-5:]) / 5 < val_loss:
                 break
-            losses.append(loss)
+            if until_train_loss_goes_up and len(train_losses) >= 10 and sum(train_losses[-5:]) / 5 < train_loss:
+                break
+            val_losses.append(val_loss)
+            train_losses.append(train_loss)
 
         wandb.finish()
 
     def find_importance_scores(self):
-        wandb.init(project="coli-final-project", name=f"{self.task.name}-seed-{self.seed}-imp-scores")
+        wandb.init(project="coli-final", name=f"{self.task.name}-seed-{self.seed}-imp-scores")
         num_layers = 12
         accs = [[0, 0, 0, 0, 0, 0] for l in range(num_layers)]
         acc, loss, mse = self.validate(self.task.dataloader_test, log_to_wandb=False)

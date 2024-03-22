@@ -27,17 +27,17 @@ class Task:
             self.dataset["validation"] = self.dataset["validation"].add_column(feature, features_val[feature])
 
     def create_datasets_and_dataloaders(self, task, tokenizer, batch_size):
-        logging.info("len of datasets before filtering", len(self.dataset["train"]), len(self.dataset["test"]), len(self.dataset["validation"]))
+        logging.info("Len of datasets before filtering", len(self.dataset["train"]), len(self.dataset["test"]), len(self.dataset["validation"]))
 
         self.dataset_train = self.dataset["train"].filter(lambda example: example[task] is not None)
         self.dataset_test = self.dataset["test"].filter(lambda example: example[task] is not None)
         self.dataset_val = self.dataset["validation"].filter(lambda example: example[task] is not None)
 
         self.num_classes = np.array(self.dataset_train[task]).max() + 1
-        self.chance_performance = max([sum(self.dataset_train[task] == label) / len(self.dataset_train[task]) for label in np.unique(self.dataset_train[task])])
+        self.chance_performance = max([sum(self.dataset_test[task] == label) / len(self.dataset_test[task]) for label in np.unique(self.dataset_train[task])])
         self.name = task
 
-        logging.info("len of datasets after filtering", len(self.dataset_train), len(self.dataset_test), len(self.dataset_val))
+        logging.info("Len of datasets after filtering", len(self.dataset_train), len(self.dataset_test), len(self.dataset_val))
 
         self.dataset_train = self.dataset_train.map(lambda e: self._tokenize(task, e, tokenizer, "train"), batched=True, batch_size=batch_size)
         self.dataset_test = self.dataset_test.map(lambda e: self._tokenize(task, e, tokenizer, "test"), batched=True, batch_size=batch_size)
